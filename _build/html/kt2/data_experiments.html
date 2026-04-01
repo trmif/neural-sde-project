@@ -1,0 +1,837 @@
+
+<!DOCTYPE html>
+
+
+<html lang="en" data-content_root="../" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Neural SDE — Tzen &amp; Raginsky (2019), Section 6 &#8212; Neural SDE — курсовой проект</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "";
+  </script>
+  <!--
+    this give us a css class that will be invisible only if js is disabled
+  -->
+  <noscript>
+    <style>
+      .pst-js-only { display: none !important; }
+
+    </style>
+  </noscript>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=8878045cc6db502f8baf" rel="stylesheet" />
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/sphinx-book-theme.css?v=3c74b3bc" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css?v=9c3e77be" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.11b39860a7a0cbfd473a3ad8a317855267ff0bd372690045ca344a6b62be495e.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css?v=4fa983c6" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+  
+  <!-- So that users can add custom icons -->
+  <script src="../_static/scripts/fontawesome.js?digest=8878045cc6db502f8baf"></script>
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf" />
+<link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf" />
+
+    <script src="../_static/documentation_options.js?v=9eb32ce0"></script>
+    <script src="../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?v=fab101a9"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js?v=b8b12719"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script async="async" src="../_static/sphinx-thebe.js?v=c100c467"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown';</script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"; const thebe_selector = ".thebe,.cell"; const thebe_selector_input = "pre"; const thebe_selector_output = ".output, .cell_output"</script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'kt2/data_experiments';</script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="С математикой всё сложно: проблема в том что чтобы посчитать градиенты назад — нужно знать будущий шум. А будущий шум случайный и неизвестен." href="math.html" />
+    <link rel="prev" title="КТ2. Изучение подходов и работа с данными" href="approaches.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  <meta name="docsearch:version" content="" />
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <div id="pst-skip-link" class="skip-link d-print-none"><a href="#main-content">Skip to main content</a></div>
+  
+  <div id="pst-scroll-pixel-helper"></div>
+  
+  <button type="button" class="btn rounded-pill" id="pst-back-to-top">
+    <i class="fa-solid fa-arrow-up"></i>Back to top</button>
+
+  
+  <dialog id="pst-search-dialog">
+    
+<form class="bd-search d-flex align-items-center"
+      action="../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         placeholder="Search this book..."
+         aria-label="Search this book..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form>
+  </dialog>
+
+  <div class="pst-async-banner-revealer d-none">
+  <aside id="bd-header-version-warning" class="d-none d-print-none" aria-label="Version warning"></aside>
+</div>
+
+  
+    <header class="bd-header navbar navbar-expand-lg bd-navbar d-print-none">
+    </header>
+  
+
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      
+      
+      <dialog id="pst-primary-sidebar-modal"></dialog>
+      <div id="pst-primary-sidebar" class="bd-sidebar-primary bd-sidebar">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+    
+    
+  </div>
+  
+    <div class="sidebar-primary-items__start sidebar-primary__section">
+        <div class="sidebar-primary-item">
+
+  
+    
+  
+
+<a class="navbar-brand logo" href="../intro.html">
+  
+  
+  
+  
+  
+  
+    <p class="title logo__title">Neural SDE — курсовой проект</p>
+  
+</a></div>
+        <div class="sidebar-primary-item">
+
+<button class="btn search-button-field search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <span class="search-button__default-text">Search</span>
+ <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd class="kbd-shortcut__modifier">K</kbd></span>
+</button></div>
+        <div class="sidebar-primary-item"><nav class="bd-links bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item navbar-nav active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../intro.html">
+                    Neural Stochastic Differential Equations
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading"><span class="caption-text">КТ1. Описание проекта</span></p>
+<ul class="nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="../kt1/task.html">1. Постановка задачи</a></li>
+
+
+
+<li class="toctree-l1"><a class="reference internal" href="../kt1/ideas.html">2. Ключевые идеи статьи</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../kt1/goals.html">3. Цели и план проекта</a></li>
+</ul>
+<p aria-level="2" class="caption" role="heading"><span class="caption-text">КТ2. Подходы и данные</span></p>
+<ul class="current nav bd-sidenav">
+<li class="toctree-l1"><a class="reference internal" href="approaches.html">1. Обзор подходов</a></li>
+<li class="toctree-l1 current active"><a class="current reference internal" href="#">2. Данные и эксперименты</a></li>
+<li class="toctree-l1"><a class="reference internal" href="math.html">3. Математический аппарат</a></li>
+</ul>
+
+    </div>
+</nav></div>
+    </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+      <div class="sidebar-primary-item">
+<div id="ethical-ad-placement"
+      class="flat"
+      data-ea-publisher="readthedocs"
+      data-ea-type="readthedocs-sidebar"
+      data-ea-manual="true">
+</div></div>
+  </div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main" role="main">
+        
+        
+
+<div class="sbt-scroll-pixel-helper"></div>
+
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article d-print-none">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item"><button class="sidebar-toggle primary-toggle btn btn-sm" title="Toggle primary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <span class="fa-solid fa-bars"></span>
+</button></div>
+      
+    </div>
+  
+  
+    <div class="header-article-items__end">
+      
+        <div class="header-article-item">
+
+<div class="article-header-buttons">
+
+
+
+
+
+<div class="dropdown dropdown-download-buttons">
+  <button class="btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Download this page">
+    <i class="fas fa-download"></i>
+  </button>
+  <ul class="dropdown-menu">
+      
+      
+      
+      <li><a href="../_sources/kt2/data_experiments.ipynb" target="_blank"
+   class="btn btn-sm btn-download-source-button dropdown-item"
+   title="Download source file"
+   data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="btn__text-container">.ipynb</span>
+</a>
+</li>
+      
+      
+      
+      
+      <li>
+<button onclick="window.print()"
+  class="btn btn-sm btn-download-pdf-button dropdown-item"
+  title="Print to PDF"
+  data-bs-placement="left" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="btn__text-container">.pdf</span>
+</button>
+</li>
+      
+  </ul>
+</div>
+
+
+
+
+<button onclick="toggleFullScreen()"
+  class="btn btn-sm btn-fullscreen-button pst-navbar-icon"
+  title="Fullscreen mode"
+  data-bs-placement="bottom" data-bs-toggle="tooltip"
+>
+  
+
+<span class="btn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+
+
+<button class="btn btn-sm nav-link pst-navbar-icon theme-switch-button pst-js-only" aria-label="Color mode" data-bs-title="Color mode"  data-bs-placement="bottom" data-bs-toggle="tooltip">
+  <i class="theme-switch fa-solid fa-sun                fa-lg" data-mode="light" title="Light"></i>
+  <i class="theme-switch fa-solid fa-moon               fa-lg" data-mode="dark"  title="Dark"></i>
+  <i class="theme-switch fa-solid fa-circle-half-stroke fa-lg" data-mode="auto"  title="System Settings"></i>
+</button>
+
+
+<button class="btn btn-sm pst-navbar-icon search-button search-button__button pst-js-only" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+</button>
+<button class="sidebar-toggle secondary-toggle btn btn-sm pst-navbar-icon" title="Toggle secondary sidebar" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="fa-solid fa-list"></span>
+</button>
+</div></div>
+      
+    </div>
+  
+</div>
+</div>
+              
+              
+
+<div id="jb-print-docs-body" class="onlyprint">
+    <h1>Neural SDE — Tzen & Raginsky (2019), Section 6</h1>
+    <!-- Table of contents -->
+    <div id="print-main-content">
+        <div id="jb-print-toc">
+            
+            <div>
+                <h2> Contents </h2>
+            </div>
+            <nav aria-label="Page">
+                <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Модель: дрейф как нейросеть</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kl">Симуляция и KL-дивергенция</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#elbo">Функция потерь (ELBO)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Визуализация результатов</a></li>
+</ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article">
+                  
+  <section class="tex2jax_ignore mathjax_ignore" id="neural-sde-tzen-raginsky-2019-section-6">
+<h1>Neural SDE — Tzen &amp; Raginsky (2019), Section 6<a class="headerlink" href="#neural-sde-tzen-raginsky-2019-section-6" title="Link to this heading">#</a></h1>
+<p><strong>Истинная модель:</strong>
+$<span class="math notranslate nohighlight">\(dX_t = \sigma(A_{\text{true}} X_t)\, dt + dW_t, \quad X_0 = 0, \quad t \in [0, T]\)</span>$</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(X_t \in \mathbb{R}^{10}\)</span> — состояние процесса</p></li>
+<li><p><span class="math notranslate nohighlight">\(A_\text{true} \in \mathbb{R}^{10 \times 10}\)</span> — случайная матрица</p></li>
+<li><p>Наблюдения: <span class="math notranslate nohighlight">\(Y = X_1 + \varepsilon\)</span>, где <span class="math notranslate nohighlight">\(\varepsilon \sim N(0,\, 0.01 \cdot I)\)</span></p></li>
+<li><p>Размер выборки: <span class="math notranslate nohighlight">\(N = 1000\)</span>, шагов: <span class="math notranslate nohighlight">\(N_\text{steps} = 32\)</span>, <span class="math notranslate nohighlight">\(\Delta t = 1/32\)</span></p></li>
+</ul>
+<p><strong>Вариационная (выученная) модель:</strong>
+$<span class="math notranslate nohighlight">\(dX_t = f_\theta(X_t, t)\, dt + dW_t\)</span>$</p>
+<p>где <span class="math notranslate nohighlight">\(f_\theta\)</span> — нейросеть. Задача: выучить <span class="math notranslate nohighlight">\(f_\theta\)</span> из наблюдений <span class="math notranslate nohighlight">\(Y = X_T + \varepsilon\)</span>.</p>
+<p><strong>Подход (Section 5.2):</strong> дискретизация методом Эйлера–Маруямы + backprop через граф.<br />
+<strong>Loss = moment matching + KL</strong> (по теореме Гирсанова, KL между вариационным процессом и винеровским процессом равен <span class="math notranslate nohighlight">\(\frac{1}{2}\int_0^T \|f_\theta(X_t)\|^2\, dt\)</span>).</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">torch</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">torch.nn</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nn</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tqdm</span><span class="w"> </span><span class="kn">import</span> <span class="n">tqdm</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">D</span>        <span class="o">=</span> <span class="mi">10</span>       <span class="c1"># размерность пространства состояний</span>
+<span class="n">N_STEPS</span>  <span class="o">=</span> <span class="mi">64</span>       <span class="c1"># шагов Эйлера (h = T/N_STEPS)</span>
+<span class="n">T</span>        <span class="o">=</span> <span class="mf">1.0</span>      <span class="c1"># горизонт времени</span>
+<span class="n">DT</span>       <span class="o">=</span> <span class="n">T</span> <span class="o">/</span> <span class="n">N_STEPS</span>
+<span class="n">SQRT_DT</span>  <span class="o">=</span> <span class="n">DT</span> <span class="o">**</span> <span class="mf">0.5</span>
+<span class="n">N_DATA</span>   <span class="o">=</span> <span class="mi">1000</span>     <span class="c1"># число наблюдений</span>
+<span class="n">N_ITER</span>   <span class="o">=</span> <span class="mi">5000</span>     <span class="c1"># итераций обучения</span>
+<span class="n">LR</span>       <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">M_SAMPLES</span> <span class="o">=</span> <span class="mi">256</span>     <span class="c1"># Монте-Карло сэмплы для оценки моментов и KL</span>
+<span class="n">OBS_STD</span>  <span class="o">=</span> <span class="mf">0.1</span>      <span class="c1"># стандартное отклонение шума наблюдений</span>
+<span class="n">DEVICE</span>   <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;cuda&#39;</span> <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;cpu&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Device: </span><span class="si">{</span><span class="n">DEVICE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Device: cpu
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">torch</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">A_true</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">DEVICE</span><span class="p">)</span>  <span class="c1"># истинная матрица</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">gen_data</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Симулируем истинный процесс:  dX_t = sigmoid(A·X_t) dt + dW_t</span>
+<span class="sd">    Наблюдение:  Y = X_T + ε,  ε ~ N(0, OBS_STD²·I)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">DEVICE</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_STEPS</span><span class="p">):</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">X</span> <span class="o">@</span> <span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="n">DT</span> <span class="o">+</span> <span class="n">SQRT_DT</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">X</span> <span class="o">+</span> <span class="n">OBS_STD</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+<span class="n">Y_data</span> <span class="o">=</span> <span class="n">gen_data</span><span class="p">(</span><span class="n">A_true</span><span class="p">,</span> <span class="n">N_DATA</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Сгенерировано </span><span class="si">{</span><span class="n">N_DATA</span><span class="si">}</span><span class="s2"> наблюдений размерности </span><span class="si">{</span><span class="n">D</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Сгенерировано 1000 наблюдений размерности 10
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Y_mean</span> <span class="o">=</span> <span class="n">Y_data</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>                                    <span class="c1"># (D,)</span>
+<span class="n">Y_cov</span>  <span class="o">=</span> <span class="p">(</span><span class="n">Y_data</span> <span class="o">-</span> <span class="n">Y_mean</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">Y_data</span> <span class="o">-</span> <span class="n">Y_mean</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">N_DATA</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>        <span class="c1"># (D, D)</span>
+<span class="n">Y_cov</span>  <span class="o">=</span> <span class="n">Y_cov</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;‖E[Y]‖  = </span><span class="si">{</span><span class="n">Y_mean</span><span class="o">.</span><span class="n">norm</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tr(Cov) = </span><span class="si">{</span><span class="n">Y_cov</span><span class="o">.</span><span class="n">trace</span><span class="p">()</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>‖E[Y]‖  = 1.633
+tr(Cov) = 10.300
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Визуализация траекторий</span>
+<span class="n">t_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">N_STEPS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">13</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">):</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">DEVICE</span><span class="p">)</span>
+    <span class="n">traj</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span>
+    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_STEPS</span><span class="p">):</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">X</span> <span class="o">@</span> <span class="n">A_true</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="n">DT</span> <span class="o">+</span> <span class="n">SQRT_DT</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">traj</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_vals</span><span class="p">,</span> <span class="n">traj</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.2</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Траектории истинного процесса (компонента 0)&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;t&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;$X_t[0]$&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">Y_cov</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;RdBu_r&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Ковариационная матрица $\hat\Sigma_Y$&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;компонента j&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;компонента i&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">images</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;&gt;:20: SyntaxWarning: invalid escape sequence &#39;\h&#39;
+&lt;&gt;:20: SyntaxWarning: invalid escape sequence &#39;\h&#39;
+/tmp/ipykernel_18499/1284578434.py:20: SyntaxWarning: invalid escape sequence &#39;\h&#39;
+  axes[1].set_title(&quot;Ковариационная матрица $\hat\Sigma_Y$&quot;)
+</pre></div>
+</div>
+<img alt="../_images/80c0c1004f6df29ea8b3e8adc77014ee88df4ee6091568e940371db951efb0fd.png" src="../_images/80c0c1004f6df29ea8b3e8adc77014ee88df4ee6091568e940371db951efb0fd.png" />
+</div>
+</div>
+<section id="id1">
+<h2>Модель: дрейф как нейросеть<a class="headerlink" href="#id1" title="Link to this heading">#</a></h2>
+<p>Параметризуем дрейф <span class="math notranslate nohighlight">\(f_\theta : \mathbb{R}^D \to \mathbb{R}^D\)</span> двухслойной сетью.<br />
+Это аналог вариационного приближения к апостериорному процессу (Раздел 4 статьи):</p>
+<div class="math notranslate nohighlight">
+\[q_\theta: \quad dX_t = f_\theta(X_t)\, dt + dW_t\]</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">drift_net</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Sequential</span><span class="p">(</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">(),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="mi">64</span><span class="p">),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Tanh</span><span class="p">(),</span>
+    <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">64</span><span class="p">,</span> <span class="n">D</span><span class="p">),</span>
+<span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">DEVICE</span><span class="p">)</span>
+
+<span class="n">total_params</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numel</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">drift_net</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Параметров в drift_net: </span><span class="si">{</span><span class="n">total_params</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Параметров в drift_net: 5514
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="kl">
+<h2>Симуляция и KL-дивергенция<a class="headerlink" href="#kl" title="Link to this heading">#</a></h2>
+<p>По теореме Гирсанова (Section 4), KL между вариационным процессом <span class="math notranslate nohighlight">\(q_\theta\)</span> и априорным процессом Винера <span class="math notranslate nohighlight">\(p\)</span> равен:</p>
+<div class="math notranslate nohighlight">
+\[\text{KL}(q_\theta \| p) = \frac{1}{2} \mathbb{E}_{q_\theta}\!\left[\int_0^T \|f_\theta(X_t)\|^2\, dt\right]\]</div>
+<p>Аппроксимируем методом Эйлера:</p>
+<div class="math notranslate nohighlight">
+\[\text{KL} \approx \frac{\Delta t}{2} \sum_{k=0}^{N-1} \mathbb{E}\!\left[\|f_\theta(X_{t_k})\|^2\right]\]</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">simulate_with_kl</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Euler для вариационного процесса.</span>
+<span class="sd">    Возвращает X_T и оценку KL(q_theta || Wiener).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">X</span>      <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">DEVICE</span><span class="p">)</span>
+    <span class="n">kl_acc</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">DEVICE</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_STEPS</span><span class="p">):</span>
+        <span class="n">drift</span>   <span class="o">=</span> <span class="n">net</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>                                           <span class="c1"># (n, D)</span>
+        <span class="n">kl_acc</span>  <span class="o">=</span> <span class="n">kl_acc</span> <span class="o">+</span> <span class="p">(</span><span class="n">drift</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">*</span> <span class="n">DT</span> <span class="o">*</span> <span class="mf">0.5</span>
+        <span class="n">X</span>       <span class="o">=</span> <span class="n">X</span> <span class="o">+</span> <span class="n">drift</span> <span class="o">*</span> <span class="n">DT</span> <span class="o">+</span> <span class="n">SQRT_DT</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">kl_acc</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="elbo">
+<h2>Функция потерь (ELBO)<a class="headerlink" href="#elbo" title="Link to this heading">#</a></h2>
+<p>ELBO для Neural SDE (Section 4, уравнение (11)):</p>
+<div class="math notranslate nohighlight">
+\[L(\theta) = \underbrace{-\log p(Y | X_T)}_{\text{reconstruction}} + \underbrace{\text{KL}(q_\theta \| p)}_{\text{Girsanov}}\]</div>
+<p>Reconstruction loss при гауссовских наблюдениях <span class="math notranslate nohighlight">\(Y \sim N(X_T, \sigma^2 I)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[-\log p(Y|X_T) \propto \frac{1}{\sigma^2}\|E[X_T] - \bar{Y}\|^2 + \frac{1}{\sigma^2}\|\text{Cov}(X_T) - \hat{\Sigma}_Y\|_F^2\]</div>
+<p>Используем момент-матчинг как суррогат reconstruction loss — это стабильнее для высокой размерности.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">compute_loss</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">Y_mean</span><span class="p">,</span> <span class="n">Y_cov</span><span class="p">,</span> <span class="n">beta_kl</span><span class="o">=</span><span class="mf">0.01</span><span class="p">):</span>
+    <span class="n">X1</span><span class="p">,</span> <span class="n">kl</span> <span class="o">=</span> <span class="n">simulate_with_kl</span><span class="p">(</span><span class="n">net</span><span class="p">,</span> <span class="n">M_SAMPLES</span><span class="p">)</span>           <span class="c1"># X1: (M, D), kl: scalar</span>
+
+    <span class="c1"># Моменты модели</span>
+    <span class="n">X1_mean</span>     <span class="o">=</span> <span class="n">X1</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>                         <span class="c1"># (D,)</span>
+    <span class="n">X1_c</span>        <span class="o">=</span> <span class="n">X1</span> <span class="o">-</span> <span class="n">X1_mean</span>
+    <span class="n">X1_cov</span>      <span class="o">=</span> <span class="n">X1_c</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X1_c</span> <span class="o">/</span> <span class="p">(</span><span class="n">M_SAMPLES</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>       <span class="c1"># (D, D)</span>
+
+    <span class="c1"># Целевая ковариация модели (вычитаем шум наблюдения)</span>
+    <span class="n">target_cov</span>  <span class="o">=</span> <span class="n">Y_cov</span> <span class="o">-</span> <span class="n">OBS_STD</span><span class="o">**</span><span class="mi">2</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">DEVICE</span><span class="p">)</span>
+
+    <span class="n">mean_loss</span>   <span class="o">=</span> <span class="p">((</span><span class="n">X1_mean</span> <span class="o">-</span> <span class="n">Y_mean</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">cov_loss</span>    <span class="o">=</span> <span class="p">((</span><span class="n">X1_cov</span>  <span class="o">-</span> <span class="n">target_cov</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+    <span class="c1"># ELBO = reconstruction (moment matching) + beta * KL</span>
+    <span class="c1"># beta_kl маленький в начале — даём сети сначала выучить моменты</span>
+    <span class="n">loss</span> <span class="o">=</span> <span class="n">mean_loss</span> <span class="o">+</span> <span class="mf">0.01</span> <span class="o">*</span> <span class="n">cov_loss</span> <span class="o">+</span> <span class="n">beta_kl</span> <span class="o">*</span> <span class="n">kl</span>
+
+    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">mean_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">cov_loss</span><span class="o">.</span><span class="n">item</span><span class="p">(),</span> <span class="n">kl</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">drift_net</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">lr</span><span class="o">=</span><span class="mf">3e-4</span><span class="p">)</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">lr_scheduler</span><span class="o">.</span><span class="n">CosineAnnealingLR</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">T_max</span><span class="o">=</span><span class="n">N_ITER</span><span class="p">,</span> <span class="n">eta_min</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
+
+<span class="n">losses</span><span class="p">,</span> <span class="n">kl_hist</span><span class="p">,</span> <span class="n">mean_hist</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+<span class="n">pbar</span> <span class="o">=</span> <span class="n">tqdm</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N_ITER</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+
+<span class="k">for</span> <span class="n">iteration</span> <span class="ow">in</span> <span class="n">pbar</span><span class="p">:</span>
+    <span class="c1"># KL warmup: первые 1000 итераций beta_kl = 0, потом линейно растёт до 0.1</span>
+    <span class="n">beta_kl</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mf">0.1</span><span class="p">,</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="p">(</span><span class="n">iteration</span> <span class="o">-</span> <span class="mi">1000</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">))</span>
+
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
+    <span class="n">loss</span><span class="p">,</span> <span class="n">ml</span><span class="p">,</span> <span class="n">cl</span><span class="p">,</span> <span class="n">kl</span> <span class="o">=</span> <span class="n">compute_loss</span><span class="p">(</span><span class="n">drift_net</span><span class="p">,</span> <span class="n">Y_mean</span><span class="p">,</span> <span class="n">Y_cov</span><span class="p">,</span> <span class="n">beta_kl</span><span class="o">=</span><span class="n">beta_kl</span><span class="p">)</span>
+    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+    <span class="n">torch</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">clip_grad_norm_</span><span class="p">(</span><span class="n">drift_net</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span> <span class="n">max_norm</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+    <span class="n">optimizer</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+    <span class="n">scheduler</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
+
+    <span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+    <span class="n">kl_hist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">kl</span><span class="p">)</span>
+    <span class="n">mean_hist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ml</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">iteration</span> <span class="o">%</span> <span class="mi">500</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">iteration</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">pbar</span><span class="o">.</span><span class="n">set_postfix</span><span class="p">({</span>
+            <span class="s1">&#39;loss&#39;</span><span class="p">:</span>      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;mean_loss&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">ml</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;kl&#39;</span><span class="p">:</span>        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">kl</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;beta_kl&#39;</span><span class="p">:</span>   <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">beta_kl</span><span class="si">:</span><span class="s1">.3f</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="p">})</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Финальный loss: </span><span class="si">{</span><span class="n">losses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>100%|██████████| 5000/5000 [05:50&lt;00:00, 14.25it/s, loss=0.1624, mean_loss=0.0301, kl=1.2354, beta_kl=0.100]
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Финальный loss: 0.162373
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="id2">
+<h2>Визуализация результатов<a class="headerlink" href="#id2" title="Link to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Neural SDE — Tzen &amp; Raginsky (2019): нейросеть как дрейф&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+
+<span class="c1"># --- График 1: Loss ---</span>
+<span class="n">w</span> <span class="o">=</span> <span class="mi">50</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">losses</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">w</span><span class="p">:</span>
+    <span class="n">sm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">losses</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">w</span><span class="p">)</span><span class="o">/</span><span class="n">w</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;valid&#39;</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">w</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">losses</span><span class="p">)),</span> <span class="n">sm</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;ELBO (сглаж.)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">kl_hist</span><span class="p">,</span>   <span class="n">color</span><span class="o">=</span><span class="s1">&#39;coral&#39;</span><span class="p">,</span>      <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;KL (Girsanov)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">mean_hist</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;forestgreen&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mean loss&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Итерация&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Loss&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Кривая обучения&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="c1"># --- График 2: Сравнение моментов ---</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">X1_model</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">simulate_with_kl</span><span class="p">(</span><span class="n">drift_net</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span>
+<span class="n">X1_mean_np</span>  <span class="o">=</span> <span class="n">X1_model</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">Y_mean_np</span>   <span class="o">=</span> <span class="n">Y_mean</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">Y_mean_np</span><span class="p">,</span> <span class="n">X1_mean_np</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;coral&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+<span class="n">lim</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">Y_mean_np</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">(),</span> <span class="nb">abs</span><span class="p">(</span><span class="n">X1_mean_np</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">*</span> <span class="mf">1.2</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="o">-</span><span class="n">lim</span><span class="p">,</span> <span class="n">lim</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="n">lim</span><span class="p">,</span> <span class="n">lim</span><span class="p">],</span> <span class="s1">&#39;k--&#39;</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mf">1.5</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;E[Y] (данные)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;E[X₁] (модель)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Сравнение средних по компонентам&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="c1"># --- График 3: Траектории ---</span>
+<span class="n">t_vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">N_STEPS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">):</span>
+        <span class="c1"># Истинная</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">DEVICE</span><span class="p">)</span>
+        <span class="n">traj_true</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_STEPS</span><span class="p">):</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span> <span class="o">+</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">X</span> <span class="o">@</span> <span class="n">A_true</span><span class="o">.</span><span class="n">T</span><span class="p">)</span> <span class="o">*</span> <span class="n">DT</span> <span class="o">+</span> <span class="n">SQRT_DT</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">traj_true</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_vals</span><span class="p">,</span> <span class="n">traj_true</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;steelblue&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                     <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Истинная&#39;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="c1"># Выученная</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">DEVICE</span><span class="p">)</span>
+        <span class="n">traj_net</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">()]</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_STEPS</span><span class="p">):</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span> <span class="o">+</span> <span class="n">drift_net</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">*</span> <span class="n">DT</span> <span class="o">+</span> <span class="n">SQRT_DT</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn_like</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">traj_net</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_vals</span><span class="p">,</span> <span class="n">traj_net</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;coral&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.6</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                     <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Нейросеть&#39;</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Время t&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;X_t[0]&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Траектории (1-я компонента)&#39;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="kc">True</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/24d371c3a00562104b05d0715c9020cb7b440d2b5ce681505aabd114b4986c06.png" src="../_images/24d371c3a00562104b05d0715c9020cb7b440d2b5ce681505aabd114b4986c06.png" />
+</div>
+</div>
+<p>ELBO стабилизируется после ~2000 итераций и не убывает далее. Тем не менее moment matching успешно сошёлся — средние по компонентам воспроизводятся точно</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+    <span class="n">X1_diag</span><span class="p">,</span> <span class="n">kl_diag</span> <span class="o">=</span> <span class="n">simulate_with_kl</span><span class="p">(</span><span class="n">drift_net</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span>
+
+<span class="n">X1_mean_d</span> <span class="o">=</span> <span class="n">X1_diag</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">Y_mean_d</span>  <span class="o">=</span> <span class="n">Y_mean</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+<span class="n">mean_corr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">corrcoef</span><span class="p">(</span><span class="n">X1_mean_d</span><span class="p">,</span> <span class="n">Y_mean_d</span><span class="p">)[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Корреляция E[X₁] vs E[Y]:  </span><span class="si">{</span><span class="n">mean_corr</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Финальный KL (Girsanov):    </span><span class="si">{</span><span class="n">kl_diag</span><span class="o">.</span><span class="n">item</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Финальный loss:             </span><span class="si">{</span><span class="n">losses</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">mean_corr</span> <span class="o">&gt;</span> <span class="mf">0.8</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✓ Нейросеть успешно выучила дрейф (corr &gt; 0.8)&quot;</span><span class="p">)</span>
+<span class="k">elif</span> <span class="n">mean_corr</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">~ Частичное совпадение моментов (corr &gt; 0.5)&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">✗ Модель не сошлась&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">mean_corr</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Корреляция E[X₁] vs E[Y]:  0.9831
+Финальный KL (Girsanov):    1.2425
+Финальный loss:             0.162373
+
+✓ Нейросеть успешно выучила дрейф (corr &gt; 0.8)
+0.9831291859390899
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            name: "python3",
+            path: "./kt2"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+                </article>
+              
+
+              
+              
+              
+              
+                <footer class="prev-next-footer d-print-none">
+                  
+<div class="prev-next-area">
+    <a class="left-prev"
+       href="approaches.html"
+       title="previous page">
+      <i class="fa-solid fa-angle-left"></i>
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">previous</p>
+        <p class="prev-next-title">КТ2. Изучение подходов и работа с данными</p>
+      </div>
+    </a>
+    <a class="right-next"
+       href="math.html"
+       title="next page">
+      <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">С математикой всё сложно: проблема в том что чтобы посчитать градиенты назад — нужно знать будущий шум. А будущий шум случайный и неизвестен.</p>
+      </div>
+      <i class="fa-solid fa-angle-right"></i>
+    </a>
+</div>
+                </footer>
+              
+            </div>
+            
+            
+              
+                <dialog id="pst-secondary-sidebar-modal"></dialog>
+                <div id="pst-secondary-sidebar" class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+
+  <div class="sidebar-secondary-item"><div
+    id="pst-page-navigation-heading-2"
+    class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> Contents
+  </div>
+  <nav id="pst-page-toc-nav" class="page-toc" aria-labelledby="pst-page-navigation-heading-2">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id1">Модель: дрейф как нейросеть</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kl">Симуляция и KL-дивергенция</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#elbo">Функция потерь (ELBO)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#id2">Визуализация результатов</a></li>
+</ul>
+  </nav></div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+<div class="bd-footer-content__inner container">
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+  <div class="footer-item">
+    
+  </div>
+  
+</div>
+          </footer>
+        
+
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script defer src="../_static/scripts/bootstrap.js?digest=8878045cc6db502f8baf"></script>
+<script defer src="../_static/scripts/pydata-sphinx-theme.js?digest=8878045cc6db502f8baf"></script>
+
+  <footer class="bd-footer">
+  </footer>
+  </body>
+</html>

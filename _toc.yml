@@ -1,0 +1,19 @@
+format: jb-book
+root: intro
+parts:
+  - caption: КТ1. Описание проекта
+    chapters:
+      - file: kt1/task
+        title: "1. Постановка задачи"
+      - file: kt1/ideas
+        title: "2. Ключевые идеи статьи"
+      - file: kt1/goals
+        title: "3. Цели и план проекта"
+  - caption: КТ2. Подходы и данные
+    chapters:
+      - file: kt2/approaches
+        title: "1. Обзор подходов"
+      - file: kt2/data_experiments
+        title: "2. Данные и эксперименты"
+      - file: kt2/math
+        title: "3. Математический аппарат"

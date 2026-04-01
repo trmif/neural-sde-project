@@ -1,0 +1,16 @@
+title: "Neural SDE — курсовой проект"
+author: ""
+copyright: ""
+
+execute:
+  execute_notebooks: "off"
+
+parse:
+  myst_enable_extensions:
+    - dollarmath
+    - colon_fence
+
+html:
+  use_issues_button: false
+  use_repository_button: false
+  extra_footer: ""
